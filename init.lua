@@ -16,14 +16,18 @@ vim.opt.softtabstop = 4
 vim.opt.shiftwidth = 4
 vim.opt.expandtab = true
 
+-- Automatically indent next line and do it depending on context
+vim.opt.autoindent = true
+vim.opt.smartindent = true
+
 -- Set incremental search
 vim.opt.incsearch = false
 
--- Cursor remains above/below bottom/top of screen when scrolling
+-- Cursor doesn't stick to end of screen when scrolling
 vim.opt.scrolloff = 8
 
 -- Faster update time
-vim.opt.updatetime = 50
+vim.opt.updatetime = 100
 
 -- Configure how new splits should be opened
 vim.opt.splitright = true
@@ -33,10 +37,14 @@ vim.opt.splitbelow = true
 vim.opt.list = true
 vim.opt.listchars = { tab = '» ' }
 
+-- Adds additional column to the left for marks
+vim.opt.signcolumn = "yes"
+
 -- Sync clipboard between OS and Neovim.
+-- Is making neovim extremely laggy currently, so don't use
 -- To make this work for Ubuntu WSL2, download win32yank.exe and place on path
 -- See https://github.com/microsoft/WSL/issues/4440#issuecomment-638956838
-vim.opt.clipboard = 'unnamedplus'
+-- vim.opt.clipboard = 'unnamedplus'
 
 -- Column to indicate 80 line width
 -- vim.opt.colorcolumn = "80"
@@ -46,6 +54,10 @@ vim.opt.clipboard = 'unnamedplus'
 
 
 -- [[ Keymaps ]]
+
+-- Center cursor after scrolling
+vim.keymap.set('n', '<C-d>', '<C-d>zz')
+vim.keymap.set('n', '<C-u>', '<C-u>zz')
 
 -- Set highlight on search, but clear on pressing <Esc> in normal mode
 vim.opt.hlsearch = true
@@ -130,13 +142,40 @@ require("lazy").setup({
         }
     },
 
-    -- Fuzzy finder
+
+    -- Telescope: fuzzy finder
+    -- Scroll through preview with <C-d> and <C-u>
     {
         'nvim-telescope/telescope.nvim',
         event = 'VimEnter',
         tag = '0.1.6',
-        dependencies = { 'nvim-lua/plenary.nvim' }
-    } 
+        dependencies = { 'nvim-lua/plenary.nvim' },
+        config = function()
+            local builtin = require 'telescope.builtin'
+            vim.keymap.set('n', '<leader>ss', builtin.find_files) 
+            vim.keymap.set('n', '<leader>sg', builtin.git_files, {})
+            vim.keymap.set('n', '<leader>sw', function()
+                builtin.grep_string({ search = vim.fn.input("Grep > ") });
+            end)
+        end
+    },
+    
+    -- Harpoon: jump quickly between files
+    {
+        "ThePrimeagen/harpoon",
+        branch = "harpoon2",
+        dependencies = { "nvim-lua/plenary.nvim" },
+        config = function()
+            local harpoon = require('harpoon')
+            harpoon:setup()
+            vim.keymap.set('n', '<leader>a', function() harpoon:list():add() end) 
+            vim.keymap.set('n', '<C-e>', function() harpoon.ui:toggle_quick_menu(harpoon:list()) end)
+            vim.keymap.set('n', '<C-h>', function() harpoon:list():select(1) end)
+            vim.keymap.set('n', '<C-j>', function() harpoon:list():select(2) end)
+            vim.keymap.set('n', '<C-k>', function() harpoon:list():select(3) end)
+            vim.keymap.set('n', '<C-l>', function() harpoon:list():select(4) end)
+        end
+    }
     
     
     -- Detect tabstop and shiftwidth automatically
