@@ -132,17 +132,50 @@ require("lazy").setup({
 
              highlight = {
                  enable = true,
-
-                 -- Setting this to true will run `:h syntax` and tree-sitter at the same time.
-                 -- Set this to `true` if you depend on 'syntax' being enabled (like for indentation).
-                 -- Using this option may slow down your editor, and you may see some duplicate highlights.
-                 -- Instead of true it can also be a list of languages
                  additional_vim_regex_highlighting = false,
              },
         }
     },
 
 
+    -- Harpoon: jump quickly between files
+    {
+        "ThePrimeagen/harpoon",
+        branch = "harpoon2",
+        dependencies = { "nvim-lua/plenary.nvim" },
+        config = function()
+            local harpoon = require('harpoon')
+            harpoon:setup()
+            vim.keymap.set('n', '<leader>a', function() harpoon:list():add() end) 
+            vim.keymap.set('n', '<C-e>', function() harpoon.ui:toggle_quick_menu(harpoon:list()) end)
+            vim.keymap.set('n', '<C-h>', function() harpoon:list():select(1) end)
+            vim.keymap.set('n', '<C-j>', function() harpoon:list():select(2) end)
+            vim.keymap.set('n', '<C-k>', function() harpoon:list():select(3) end)
+            vim.keymap.set('n', '<C-l>', function() harpoon:list():select(4) end)
+        
+            -- This small section here makes it so we use the UI from telescope to switch between files
+            -- local conf = require("telescope.config").values
+            -- local function toggle_telescope(harpoon_files)
+            --     local file_paths = {}
+            --     for _, item in ipairs(harpoon_files.items) do
+            --         table.insert(file_paths, item.value)
+            --     end
+            --
+            --     require("telescope.pickers").new({}, {
+            --         prompt_title = "Harpoon",
+            --         finder = require("telescope.finders").new_table({
+            --             results = file_paths,
+            --         }),
+            --         previewer = conf.file_previewer({}),
+            --         sorter = conf.generic_sorter({}),
+            --     }):find()
+            -- end
+            --
+            -- vim.keymap.set("n", "<C-e>", function() toggle_telescope(harpoon:list()) end, { desc = "Open harpoon window" }) 
+
+        end
+    },
+    
     -- Telescope: fuzzy finder
     -- Scroll through preview with <C-d> and <C-u>
     {
@@ -159,24 +192,6 @@ require("lazy").setup({
             end)
         end
     },
-    
-    -- Harpoon: jump quickly between files
-    {
-        "ThePrimeagen/harpoon",
-        branch = "harpoon2",
-        dependencies = { "nvim-lua/plenary.nvim" },
-        config = function()
-            local harpoon = require('harpoon')
-            harpoon:setup()
-            vim.keymap.set('n', '<leader>a', function() harpoon:list():add() end) 
-            vim.keymap.set('n', '<C-e>', function() harpoon.ui:toggle_quick_menu(harpoon:list()) end)
-            vim.keymap.set('n', '<C-h>', function() harpoon:list():select(1) end)
-            vim.keymap.set('n', '<C-j>', function() harpoon:list():select(2) end)
-            vim.keymap.set('n', '<C-k>', function() harpoon:list():select(3) end)
-            vim.keymap.set('n', '<C-l>', function() harpoon:list():select(4) end)
-        end
-    }
-    
     
     -- Detect tabstop and shiftwidth automatically
     -- 'tpope/vim-sleuth', 
