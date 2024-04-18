@@ -1,4 +1,4 @@
--- [[[ OPTIONS ]]
+-- [[ OPTIONS ]]
 
 -- Set leader key
 vim.g.mapleader = ' '
@@ -33,11 +33,17 @@ vim.opt.splitbelow = true
 vim.opt.list = true
 vim.opt.listchars = { tab = '» ' }
 
+-- Sync clipboard between OS and Neovim.
+-- To make this work for Ubuntu WSL2, download win32yank.exe and place on path
+-- See https://github.com/microsoft/WSL/issues/4440#issuecomment-638956838
+vim.opt.clipboard = 'unnamedplus'
+
 -- Column to indicate 80 line width
 -- vim.opt.colorcolumn = "80"
 
 -- Make cursor in insert mode fat
 -- vim.opt.guicursor = ""
+
 
 -- [[ Keymaps ]]
 
@@ -53,8 +59,8 @@ vim.keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = 'Go to next [D]iagn
 vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, { desc = 'Show diagnostic [E]rror messages' })
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
 
--- [[ Basic Autocommands ]]
 
+-- [[ Basic Autocommands ]]
 -- Highlight when yanking text
 vim.api.nvim_create_autocmd('TextYankPost', {
   desc = 'Highlight when yanking (copying) text',
@@ -63,6 +69,7 @@ vim.api.nvim_create_autocmd('TextYankPost', {
     vim.highlight.on_yank()
   end,
 })
+
 
 -- [[ Install `lazy.nvim` plugin manager ]]
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
@@ -78,6 +85,7 @@ if not (vim.uv or vim.loop).fs_stat(lazypath) then
 end
 vim.opt.rtp:prepend(lazypath)
 
+
 -- [[ Configure and install plugins ]]
 --
 --  To check the current status of your plugins, run
@@ -88,11 +96,65 @@ vim.opt.rtp:prepend(lazypath)
 --
 require("lazy").setup({
     
-    -- Detect tabstop and shiftwidth automatically
-    'tpope/vim-sleuth', 
+    -- Comment visual regions/lines
+    -- Only load when opening a buffer right before opening or creating a file
+    { 
+        'numToStr/Comment.nvim', 
+        opts = {
+            event = { "BufReadPre", "BufNewFile" }
+        } 
+    },
 
-    -- "gc" to comment visual regions/lines
-    { 'numToStr/Comment.nvim', opts = {} }
+    -- Language parser
+    {
+        'nvim-treesitter/nvim-treesitter',
+        build = ':TSUpdate', -- Ensures that all installed parsers are updated to the latest version on build 
+        opts = {
+             ensure_installed = { "c", "lua", "vim", "vimdoc", "query", "rust", "python", "html", "css", "json", "dockerfile", "r", "bash" },
+
+             -- Install parsers synchronously (only applied to `ensure_installed`)
+             sync_install = false,
+
+             -- Automatically install missing parsers when entering buffer
+             auto_install = true,
+
+             highlight = {
+                 enable = true,
+
+                 -- Setting this to true will run `:h syntax` and tree-sitter at the same time.
+                 -- Set this to `true` if you depend on 'syntax' being enabled (like for indentation).
+                 -- Using this option may slow down your editor, and you may see some duplicate highlights.
+                 -- Instead of true it can also be a list of languages
+                 additional_vim_regex_highlighting = false,
+             },
+        }
+    },
+
+    -- Fuzzy finder
+    {
+        'nvim-telescope/telescope.nvim',
+        event = 'VimEnter',
+        tag = '0.1.6',
+        dependencies = { 'nvim-lua/plenary.nvim' }
+    } 
+    
+    
+    -- Detect tabstop and shiftwidth automatically
+    -- 'tpope/vim-sleuth', 
+    
+    -- { -- Adds git related signs to the gutter, as well as utilities for managing changes
+    --     'lewis6991/gitsigns.nvim',
+    --     opts = {
+    --         signs = {
+    --             add = { text = '+' },
+    --             change = { text = '~' },
+    --             delete = { text = '_' },
+    --             topdelete = { text = '‾' },
+    --             changedelete = { text = '~' },
+    --         },
+    --     },
+    -- },
+
 
 
 })
