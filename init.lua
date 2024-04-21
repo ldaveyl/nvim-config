@@ -73,6 +73,7 @@ vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagn
 
 
 -- [[ Basic Autocommands ]]
+
 -- Highlight when yanking text
 vim.api.nvim_create_autocmd('TextYankPost', {
   desc = 'Highlight when yanking (copying) text',
@@ -117,7 +118,7 @@ require("lazy").setup({
         } 
     },
 
-    -- Language parser
+    -- Language parser: Highlights code
     {
         'nvim-treesitter/nvim-treesitter',
         build = ':TSUpdate', -- Ensures that all installed parsers are updated to the latest version on build 
@@ -194,8 +195,6 @@ require("lazy").setup({
             end)
         end
     },
-    
- 
 
 
     -- LSP: Language Server Protocol
@@ -294,12 +293,16 @@ require("lazy").setup({
                 end,
             })
 
+
             -- LSP servers and clients are able to communicate to each other what features they support.
             --  By default, Neovim doesn't support everything that is in the LSP specification.
             --  When you add nvim-cmp, luasnip, etc. Neovim now has *more* capabilities.
             --  So, we create new capabilities with nvim cmp, and then broadcast that to the servers.
+            
+            -- THESE 2 LINES ARE NOT WORKING
             local capabilities = vim.lsp.protocol.make_client_capabilities()
-            capabilities = vim.tbl_deep_extend('force', capabilities, require('cmp_nvim_lsp').default_capabilities())
+
+            -- capabilities = vim.tbl_deep_extend('force', capabilities, require('hrsh7th/cmp_nvim_lsp').default_capabilities())
 
             -- Enable the following language servers
             --  Feel free to add/remove any LSPs that you want here. They will automatically be installed.
@@ -311,19 +314,10 @@ require("lazy").setup({
             --  - settings (table): Override the default settings passed when initializing the server.
             --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
             local servers = {
-                -- clangd = {},
-                -- gopls = {},
-                -- pyright = {},
-                -- rust_analyzer = {},
+                basedpyright = {},
+                rust_analyzer = {},
+                r_language_server = {},
                 -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
-                --
-                -- Some languages (like typescript) have entire language plugins that can be useful:
-                --    https://github.com/pmizio/typescript-tools.nvim
-                --
-                -- But for many setups, the LSP (`tsserver`) will work just fine
-                -- tsserver = {},
-                --
-
                 lua_ls = {
                     -- cmd = {...},
                     -- filetypes = { ...},
@@ -339,7 +333,7 @@ require("lazy").setup({
                     },
                 },
             }
-
+            
             -- Ensure the servers and tools above are installed
             --  To check the current status of installed tools and/or manually install
             --  other tools, you can run
@@ -353,72 +347,66 @@ require("lazy").setup({
             local ensure_installed = vim.tbl_keys(servers or {})
             vim.list_extend(ensure_installed, {
                 'stylua', -- Used to format Lua code
+                'ruff', -- Used to format and lint python code
             })
             require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
-            require('mason-lspconfig').setup {
-                handlers = {
-                    function(server_name)
-                        local server = servers[server_name] or {}
-                        -- This handles overriding only values explicitly passed
-                        -- by the server configuration above. Useful when disabling
-                        -- certain features of an LSP (for example, turning off formatting for tsserver)
-                        server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
-                        require('lspconfig')[server_name].setup(server)
-                    end,
-                },
-            }
-        end,
-    },
-
-
-    -- Detect tabstop and shiftwidth automatically
-    -- 'tpope/vim-sleuth', 
+            -- require('mason-lspconfig').setup {
+            --     handlers = {
+            --         function(server_name)
+            --             local server = servers[server_name] or {}
+            --             -- This handles overriding only values explicitly passed
+            --             -- by the server configuration above. Useful when disabling
+            --             -- certain features of an LSP (for example, turning off formatting for tsserver)
+            --             server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
+            --             require('lspconfig')[server_name].setup(server)
+            --         end,
+            --     },
+            -- }
+        end
+    }
     
-    -- { -- Adds git related signs to the gutter, as well as utilities for managing changes
-    --     'lewis6991/gitsigns.nvim',
-    --     opts = {
-    --         signs = {
-    --             add = { text = '+' },
-    --             change = { text = '~' },
-    --             delete = { text = '_' },
-    --             topdelete = { text = '‾' },
-    --             changedelete = { text = '~' },
-    --         },
-    --     },
-    -- },
 
+--     -- Autoformat
+--     {
+--     'stevearc/conform.nvim',
+--     lazy = false,
+--     keys = {
+--         {
+--             '<leader>f',
+--             function()
+--                 require('conform').format { async = true, lsp_fallback = true }
+--             end,
+--             mode = '',
+--             desc = '[F]ormat buffer',
+--         },
+--     },
+--     opts = {
+--         notify_on_error = false,
+--         format_on_save = function(bufnr)
+--             -- Disable "format_on_save lsp_fallback" for languages that don't
+--             -- have a well standardized coding style. You can add additional
+--             -- languages here or re-enable it for the disabled ones.
+--             local disable_filetypes = { c = true, cpp = true }
+--             return {
+--                 timeout_ms = 500,
+--                 lsp_fallback = not disable_filetypes[vim.bo[bufnr].filetype],
+--             }
+--         end,
+--         formatters_by_ft = {
+--             lua = { 'stylua' },
+--             -- Conform can also run multiple formatters sequentially
+--             -- python = { "isort", "black" },
+--             --
+--             -- You can use a sub-list to tell conform to run *until* a formatter
+--             -- is found.
+--             -- javascript = { { "prettierd", "prettier" } },
+--         },
+--     },
+-- },
 
 
 })
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
